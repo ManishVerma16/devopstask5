@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+  labels:
+    app: prometheus
+spec:
+  selector:
+    app: prometheus
+    dc: IN
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 9090
+    nodePort: 31001
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-pvc
+  labels:
+    app: prometheus
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: promotheus
+  labels:
+    app: prometheus
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: prometheus
+      dc: IN
+  template:
+    metadata:
+      name: -pod
+      labels:
+        app: prometheus
+        dc: IN
+    spec:
+      containers:
+      - name: prom-container
+        image: manishverma16/prometheus:v1
+        volumeMounts:
+        - name: prometheus-vol
+          mountPath: /prometheus-2.19.2.linux-amd64/data
+      volumes:
+      - name: prometheus-vol
+        persistentVolumeClaim:
+          claimName: prometheus-pvc
+

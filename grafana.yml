@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-service
+spec:
+  selector:
+    app: grafana
+    dc: IN
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 3000
+      nodePort: 31002
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  labels:
+    app: grafana
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: grafana
+      dc: IN
+  template:
+    metadata:
+      name: -pod
+      labels:
+        app: grafana
+        dc: IN
+    spec:
+      containers:
+      - name: graf-con
+        image: manishverma16/grafana:v1
+        volumeMounts:
+        - name: grafana-vol
+          mountPath: /usr/share/grafana/data
+      volumes:
+        - name: grafana-vol
+          persistentVolumeClaim:
+            claimName: prometheus-pvc
+
